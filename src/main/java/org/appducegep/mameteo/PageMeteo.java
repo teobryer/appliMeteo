@@ -28,26 +28,6 @@ public class PageMeteo extends AppCompatActivity {
 
     private TextView libelleTitre;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_meteo:
-                    libelleTitre.setText(R.string.titre_accueil);
-                    return true;
-                case R.id.navigation_meteo_detail:
-                    libelleTitre.setText(R.string.titre_meteo_detail);
-                    return true;
-                case R.id.navigation_notifications:
-                    libelleTitre.setText(R.string.title_notifications);
-                    return true;
-            }
-            return false;
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,10 +40,8 @@ public class PageMeteo extends AppCompatActivity {
         }
 
         libelleTitre = (TextView) findViewById(R.id.message);
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        String CLE = "";
+        String CLE = "c826c0724ab24c94879184835192102";
         String xml = "";
 
         try {
@@ -105,20 +83,34 @@ public class PageMeteo extends AppCompatActivity {
             String soleilOuNuage = elementSoleilOuNuage.getTextContent();
             if(soleilOuNuage.compareTo("Sunny") == 0) soleilOuNuage = "Ensoleillé";
             else soleilOuNuage = "Nuageux";
+            Element elementLieu = (Element)doc.getElementsByTagName("location").item(0);
+            Element elementVille = (Element)elementLieu.getElementsByTagName("name").item(0);
+            String ville = elementVille.getTextContent();
+            String vent = ventForce + ventDirection;
+            Element elementTemperature = (Element)doc.getElementsByTagName("temp_c").item(0);
+            float temperature = Float.parseFloat(elementTemperature.getTextContent());
 
-            System.out.println("Meteo = " + soleilOuNuage);
-            System.out.println("Vent : " + ventDirection + " " + ventForce + "\n");
-            System.out.println("Humidite = " + humidite);
+            System.out.println("//////////////////////");
+            System.out.println("/// Ville = " + ville);
+            System.out.println("/// Meteo = " + soleilOuNuage);
+            System.out.println("/// Vent : " + vent + "\n");
+            System.out.println("/// Humidite = " + humidite);
+            System.out.println("/// Temperature = " + temperature);
+            System.out.println("//////////////////////");
+
+            TextView affichageTitre = (TextView)this.findViewById(R.id.titre_page_meteo);
+            affichageTitre.setText("Météo de " + ville);
 
             TextView affichageMeteo = (TextView)this.findViewById(R.id.meteo);
             affichageMeteo.setText(soleilOuNuage + "\n");
-            affichageMeteo.append("\n\n\n\n\n");
-            affichageMeteo.append("Vent : " + ventDirection + " " + ventForce + "\n");
+            affichageMeteo.append("\n\n");
+            affichageMeteo.append("Température : " + temperature + "\n");
+            affichageMeteo.append("Vent : " + vent + "\n");
             affichageMeteo.append("Humidite : " + humidite + "\n");
 
 
             MeteoDAO meteoDAO = new MeteoDAO(getApplicationContext());
-            meteoDAO.ajouterMeteo(soleilOuNuage);
+            meteoDAO.ajouterMeteo(soleilOuNuage, Integer.parseInt(humidite), vent, temperature);
 
 
         } catch (IOException e) {
@@ -126,7 +118,7 @@ public class PageMeteo extends AppCompatActivity {
         } catch (SAXException e) {
             e.printStackTrace();
         }
-         catch (ParserConfigurationException e) {
+        catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
 
